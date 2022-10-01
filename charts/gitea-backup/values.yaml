@@ -1,0 +1,205 @@
+# Container configuration.
+image:
+  repository: ten7/gitea-backup
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+#
+# Backup configuration.
+#
+# Here is where you'll do most of your configuration for the backup process.
+#
+gitea_backup:
+  config:
+  
+    # Turn on debugging output. 
+    #
+    # This can be useful to troubleshoot failing backups.
+    # 
+    debug: false
+
+    # Stop the entire cronjob if any one backup fails.
+    #
+    # This can be useful to troubleshoot failing backups.
+    #
+    stopOnFailure: false
+
+    # Dictionary of gitea sources from which to create backups.
+    #
+    # The key name (my-prod-db) below, need not be a database name, it can be any 
+    # valid key in YAML. Configurations here are referenced by key name in the
+    # `gitea_backup.config.backups` value.
+    #
+    sources:
+      # gitea_backup:
+      #   sources:
+      #     my-prod-db:
+      #       host: "gitea.example.com"
+      #       port: 3306
+      #       usernameFile: "/path/to/username.txt"
+      #       passwordFile: "/path/to/password.txt"
+      #       tlsCertFile: "/path/to/tls.cert"
+      #       tlsKeyFile: "/path/to/tls.key"
+      #       retryCount: 3
+      #       retryDelay: 30
+      # 
+      ## Where, in each entry:
+      ## * `host` is the hostname of the database server. 
+      ## * `port` is the port with which to connect to the database.
+      ## * `usernameFile` is the path to a file containing the username. Optional if `username` is specified.
+      ## * `username` is the username with which to connect to the database. Ignored if `usernameFile` is specified.
+      ## * `passwordFile` is the path to a file containing the password. Optional if `password` is specified.
+      ## * `password` is the password with which to connect to the database. Ignored if `passwordFile` is specified.
+      ## * `tlsCertFile` is the path to the TLS certificate necessary to connect to the database. Optional.
+      ## * `tlsKeyFile` is the path to the TLS certificate key necessary to connect to the database. Optional.
+      ## * `retryCount` is the number of time to retry `platform` commands if they fail. Optional, defaults to `3`.
+      ## * `retryDelay` is the time in seconds to wait before retrying a failed `platform` command. Optional, defaults to `30`.
+
+    #
+    # Remotes specify remote S3 buckets or SFTP servers to which to upload backups.
+    #
+    # While two examples are shown below (one of each type supported), any 
+    # number of remotes can be defined.
+    #
+    # The key names (example-s3-bucket, and sftp.example.com) below, need not 
+    # be a URL, it can be any valid key in YAML. Configurations here are 
+    # referenced by key name in the `gitea_backup.config.backups` value.
+    #
+    remotes:
+      # example-s3-bucket:
+      #   type: "s3"
+      #   bucket: "my-s3-bucket"
+      #   provider: "AWS"
+      #   accessKeyFile: "/path/to/aws-s3-key.txt"
+      #   secretKeyFile: "/path/to/aws-s3-secret.txt"
+      #   hostBucket: "my-example-bucket.s3.example.com"
+      #   s3Url: "https://my-example-bucket.s3.example.com"
+      #   region: "us-east-1"
+      # sftp.example.com:
+      #   type: "sftp"
+      #   host: "sftp.example.com"
+      #   user: "example_user"
+      #   keyFile: "/config/id_example_sftp"
+      #   pubKeyFile: "/config/id_example_sftp.pub"
+      #
+      ## For `s3` type remotes:
+      ## * `bucket` is the name of the S3 bucket. 
+      ## * `provider` is the S3 provider. [See rclone's S3 documenation on `--s3-provider`](https://rclone.org/s3/#s3-provider) for possible values. Optional, defaults to `AWS`.
+      ## * `accessKeyFile` is the path to a file containing the access key. Optional if `accessKey` is specified.
+      ## * `accessKey` is the value of the access key necessary to access the bucket. Ignored if `accessKeyFile` is specified.
+      ## * `secretKeyFile` is the path to a file containing the secret key. Optional if `secretKey` is specified.
+      ## * `secretKey` is the value of the access key necessary to secret the bucket. Ignored if `secretKeyFile` is specified.
+      ## * `region` is the AWS region in which the bucket resides. Required if using AWS S3, may be optional for other providers.
+      ## * `endpoint` is the S3 endpoint to use. Optional if using AWS, required for other providers.
+      ## 
+      ## For `sftp` type remotes:
+      ## * `host` is the hostname of the SFTP server. Required.
+      ## * `user` is the username necessary to login to the SFTP server. Required.
+      ## * `keyFile` is the path to a file containing the SSH private key. Required.
+      ## * `pubKeyFile` si the path to a file containing the SSH public key. Required for database backups, ignored for file backups.
+
+    #
+    # The `gitea_backup.backups` list specifies the backups to ultimately perform, referencing the `gitea_backup.sources` and `gitea_backup.remotes` sections for connectivity details.
+    #
+    backups:
+      # - name: "example.com database"
+      #   source: "my-prod-db"
+      #   database: "my-site-live"
+      #   path: "path/in/source/bucket"
+      #   disabled: false
+      #   healthcheckUrl: "https://pings.example.com/path/to/service"
+      #   disabled: false
+      #   targets:
+      #     - remote: "example-s3-bucket"
+      #       path: "example.com/database"
+      #       retainCount: 3
+      #       disabled: true
+      #     - remote: "sftp.example.com"
+      #       path: "backups/example.com/database"
+      #       retainCount: 3
+      #       disabled: false
+      #  
+      ## Where:
+      ## * `name` is the display name of the backup. Optional, but makes the logs easier.
+      ## * `source` is the name of the key under `gitea_backups.sources` from which to generate the backup. Required.
+      ## * `path` is the path in the source bucket from which to get files. Optional.
+      ## * `healthcheckUrl` is the URL to ping when the backup completes successfully. Optional.
+      ## * `disabled` is `true` to disable (skip) the backup. Optional, defaults to `false`.
+      ## * `targets` is a list of remotes and additional destination information about where to upload backups. Required.
+      #
+      ## For each item in `targets`:
+      ## * `remote` is the key under `gitea_backup.config.remotes` to use when uploading the backup. Required.
+      ## * `path` is the path on the remote to upload the backup. Optional.
+      ## * `retainCount` is the total number of backups to retain in the directory. Optional. Defaults to `1`, or no rotation.
+      ## * `disabled` is `true` to skip uploading to the specifed `remote`. Optional, defaults to `false`.
+
+# Defines the backup cronjob.
+cronjob:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: "Forbid"
+  restartPolicy: "Never"
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+
+# Additional volumes to add to the gitea-backup cronjob.
+#
+# Use this to define additional secrets which contain S3 or SFTP credientals.
+extraVolumes:
+# - name: vol-secret-my-example-bucket
+#   secret:
+#     defaultMode: 420
+#     secretName: my-example-bucket
+# - name: vol-secret-example-key
+#   secret:
+#     defaultMode: 420
+#     secretName: example-key
+
+
+# Additional volumes to mount.
+extraVolumeMounts:
+# - name: vol-secret-my-example-bucket
+#   mountPath: "/config/my-example-bucket"
+# - name: vol-secret-example-key
+#   mountPath: "/config/example-key"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

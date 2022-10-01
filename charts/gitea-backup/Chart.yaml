@@ -1,0 +1,7 @@
+apiVersion: v2
+name: gitea-backup
+description: A helm chart to backup your Kubernetes-based Gitea instance to an S3 bucket or SFTP
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
