@@ -8,6 +8,12 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Create RBAC configuration
+#
+# This is required for the role to function.
+rbac:
+  create: true
+
 #
 # Backup configuration.
 #
@@ -168,7 +174,7 @@ extraVolumeMounts:
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create: false
+  create: true
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
