@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   gitea-backup:
   - apiVersion: v2
+    appVersion: 2.0.1
+    created: "2022-10-01T21:32:23.165611369Z"
+    description: A helm chart to backup your Kubernetes-based Gitea instance to an
+      S3 bucket or SFTP
+    digest: 304a22b7d6ec61fa94b7d86ea6e23946c072d46c188d48d7d2c77ac5f8b1452d
+    name: gitea-backup
+    type: application
+    urls:
+    - https://ten7.github.io/gitea-backup-helm/gitea-backup-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
     appVersion: 2.0.0
     created: "2022-10-01T19:55:54.457271326Z"
     description: A helm chart to backup your Kubernetes-based Gitea instance to an
@@ -23,4 +34,4 @@ entries:
     urls:
     - https://ten7.github.io/gitea-backup-helm/gitea-backup-1.0.0.tgz
     version: 1.0.0
-generated: "2022-10-01T19:55:54.45654299Z"
+generated: "2022-10-01T21:32:23.164328263Z"
